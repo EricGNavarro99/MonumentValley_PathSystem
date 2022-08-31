@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7178457462077637836}
   - component: {fileID: 1749614816105445516}
   m_Layer: 0
-  m_Name: PathableCube
+  m_Name: PathableBlock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
