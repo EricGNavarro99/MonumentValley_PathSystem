@@ -43,5 +43,5 @@ public class PathSystem : MonoBehaviour
         }
     }
 
-    public Vector3 GetWalkPoint() => transform.position + transform.up * _walkPointOffset; // Error aquí! Subir a jugador.
+    public Vector3 GetWalkPoint() => transform.position + transform.up * _walkPointOffset;
 }

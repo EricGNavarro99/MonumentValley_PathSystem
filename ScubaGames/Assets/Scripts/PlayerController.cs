@@ -27,11 +27,6 @@ public class PlayerController : MonoBehaviour
         StartStopCoroutine(true, "RaycastCoroutine");
     }
 
-    private void Update()
-    {
-        Debug.Log(_currentPosition);
-    }
-
     IEnumerator PositionCoroutine()
     {
         while (true)
@@ -133,11 +128,11 @@ public class PlayerController : MonoBehaviour
 
         for (int i = _finalPath.Count - 1; i > 0; i--)
         {
-            sq.Append(transform.DOMove(_finalPath[i].GetComponent<PathSystem>().GetWalkPoint(),
+            sq.Append(transform.DOMove(_finalPath[i].GetComponent<PathSystem>().GetWalkPoint() + transform.up / 2,
                 .2f * SetPlayerSpeed(_finalPath[i].GetComponent<PathSystem>()._isStair)).SetEase(_playerAnimationMovement));
         }
 
-        sq.Append(transform.DOMove(_clickedPosition.GetComponent<PathSystem>().GetWalkPoint(),
+        sq.Append(transform.DOMove(_clickedPosition.GetComponent<PathSystem>().GetWalkPoint() + transform.up / 2,
             .2f * SetPlayerSpeed(_clickedPosition.GetComponent<PathSystem>()._isStair)).SetEase(_playerAnimationMovement));
 
         sq.AppendCallback(() => Clear());
