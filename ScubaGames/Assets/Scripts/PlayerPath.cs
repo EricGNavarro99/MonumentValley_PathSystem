@@ -9,7 +9,7 @@ public class WalkPath
     public bool _active = false;
 }
 
-public class PathSystem : MonoBehaviour
+public class PlayerPath : MonoBehaviour
 {
     [Space] public List<WalkPath> _possiblePaths = new List<WalkPath>();
 
@@ -39,7 +39,7 @@ public class PathSystem : MonoBehaviour
             if (paths._target == null) return;
 
             Gizmos.color = paths._active ? _linearGizmosColor : Color.clear;
-            Gizmos.DrawLine(GetWalkPoint(), paths._target.GetComponent<PathSystem>().GetWalkPoint());
+            Gizmos.DrawLine(GetWalkPoint(), paths._target.GetComponent<PlayerPath>().GetWalkPoint());
         }
     }
 

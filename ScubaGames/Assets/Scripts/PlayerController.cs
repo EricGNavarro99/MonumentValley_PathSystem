@@ -62,7 +62,7 @@ public class PlayerController : MonoBehaviour
         else return;
 
         if (Physics.Raycast(playerRay, out playerHit))
-            if (playerHit.transform.GetComponent<PathSystem>() != null) _currentPosition = playerHit.transform;
+            if (playerHit.transform.GetComponent<PlayerPath>() != null) _currentPosition = playerHit.transform;
 
         transform.parent = CheckGroundMotion();
     }
@@ -77,7 +77,7 @@ public class PlayerController : MonoBehaviour
             RaycastHit mouseHit;
 
             if (Physics.Raycast(mouseRay, out mouseHit))
-                if (mouseHit.transform.GetComponent<PathSystem>() != null)
+                if (mouseHit.transform.GetComponent<PlayerPath>() != null)
                 {
                     _clickedPosition = mouseHit.transform;
                     _finalPath.Clear();
@@ -91,12 +91,12 @@ public class PlayerController : MonoBehaviour
         List<Transform> nextPositions = new List<Transform>();
         List<Transform> pastPositions = new List<Transform>();
 
-        foreach (WalkPath path in _currentPosition.GetComponent<PathSystem>()._possiblePaths)
+        foreach (WalkPath path in _currentPosition.GetComponent<PlayerPath>()._possiblePaths)
         {
             if (path._active)
             {
                 nextPositions.Add(path._target);
-                path._target.GetComponent<PathSystem>()._previousPosition = _currentPosition;
+                path._target.GetComponent<PlayerPath>()._previousPosition = _currentPosition;
             }
         }
 
@@ -113,8 +113,8 @@ public class PlayerController : MonoBehaviour
         while (position != _currentPosition)
         {
             _finalPath.Add(position);
-            if (position.GetComponent<PathSystem>()._previousPosition != null)
-                position = position.GetComponent<PathSystem>()._previousPosition;
+            if (position.GetComponent<PlayerPath>()._previousPosition != null)
+                position = position.GetComponent<PlayerPath>()._previousPosition;
             else return;
         }
         FollowPath();
@@ -128,19 +128,19 @@ public class PlayerController : MonoBehaviour
 
         for (int i = _finalPath.Count - 1; i > 0; i--)
         {
-            sq.Append(transform.DOMove(_finalPath[i].GetComponent<PathSystem>().GetWalkPoint() + transform.up / 2,
-                .2f * SetPlayerSpeed(_finalPath[i].GetComponent<PathSystem>()._isStair)).SetEase(_playerAnimationMovement));
+            sq.Append(transform.DOMove(_finalPath[i].GetComponent<PlayerPath>().GetWalkPoint() + transform.up / 2,
+                .2f * SetPlayerSpeed(_finalPath[i].GetComponent<PlayerPath>()._isStair)).SetEase(_playerAnimationMovement));
         }
 
-        sq.Append(transform.DOMove(_clickedPosition.GetComponent<PathSystem>().GetWalkPoint() + transform.up / 2,
-            .2f * SetPlayerSpeed(_clickedPosition.GetComponent<PathSystem>()._isStair)).SetEase(_playerAnimationMovement));
+        sq.Append(transform.DOMove(_clickedPosition.GetComponent<PlayerPath>().GetWalkPoint() + transform.up / 2,
+            .2f * SetPlayerSpeed(_clickedPosition.GetComponent<PlayerPath>()._isStair)).SetEase(_playerAnimationMovement));
 
         sq.AppendCallback(() => Clear());
     }
 
     private void Clear()
     {
-        foreach (Transform tr in _finalPath) tr.GetComponent<PathSystem>()._previousPosition = null;
+        foreach (Transform tr in _finalPath) tr.GetComponent<PlayerPath>()._previousPosition = null;
 
         _finalPath.Clear();
         _isWalking = false;
@@ -153,12 +153,12 @@ public class PlayerController : MonoBehaviour
 
         if (current == _clickedPosition) return;
 
-        foreach (WalkPath path in current.GetComponent<PathSystem>()._possiblePaths)
+        foreach (WalkPath path in current.GetComponent<PlayerPath>()._possiblePaths)
         {
             if (!pastPositions.Contains(path._target) && path._active)
             {
                 nextPositions.Add(path._target);
-                path._target.GetComponent<PathSystem>()._previousPosition = current;
+                path._target.GetComponent<PlayerPath>()._previousPosition = current;
             }
         }
 
@@ -169,7 +169,7 @@ public class PlayerController : MonoBehaviour
     
     private bool CheckChild() => transform.childCount > 0;
 
-    private Transform CheckGroundMotion() => _currentPosition.GetComponent<PathSystem>()._movableBlock ? _currentPosition.parent : null;
+    private Transform CheckGroundMotion() => _currentPosition.GetComponent<PlayerPath>()._movableBlock ? _currentPosition.parent : null;
 
     private float SetPlayerSpeed(bool isStair) => (!isStair) ? _speed : _stairSpeed;
 }
