@@ -543,7 +543,7 @@ MonoBehaviour:
   _previousPosition: {fileID: 0}
   _movableBlock: 0
   _isStair: 0
-  _playerCanRotate: 0
+  _playerCanRotate: 1
   _walkPointOffset: 0.5
   _sphereGizmosColor: {r: 0, g: 0, b: 0, a: 1}
   _sphereGizmosRadius: 0.1
