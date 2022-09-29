@@ -2,15 +2,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-
 public class WalkPath
 {
     public Transform _target;
     public bool _active = false;
 }
 
-public class PlayerPath : MonoBehaviour
+public class PathableBlock : MonoBehaviour
 {
+    #region Variables:
+
     [Space] public List<WalkPath> _possiblePaths = new List<WalkPath>();
 
     [Space] public Transform _previousPosition;
@@ -27,6 +28,8 @@ public class PlayerPath : MonoBehaviour
     public float _sphereGizmosRadius = .1f;
     public Color _linearGizmosColor = Color.black;
 
+    #endregion
+
     private void OnDrawGizmos()
     {
         Gizmos.color = _sphereGizmosColor;
@@ -39,9 +42,12 @@ public class PlayerPath : MonoBehaviour
             if (paths._target == null) return;
 
             Gizmos.color = paths._active ? _linearGizmosColor : Color.clear;
-            Gizmos.DrawLine(GetWalkPoint(), paths._target.GetComponent<PlayerPath>().GetWalkPoint());
+            Gizmos.DrawLine(GetWalkPoint(), paths._target.GetComponent<PathableBlock>().GetWalkPoint());
         }
     }
 
-    public Vector3 GetWalkPoint() => transform.position + transform.up * _walkPointOffset;
+    public Vector3 GetWalkPoint()
+    { 
+        return transform.position + transform.up * _walkPointOffset; 
+    }
 }

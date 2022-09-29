@@ -6,54 +6,51 @@ using DG.Tweening;
 
 public class PlayerController : MonoBehaviour
 {
+    #region Variables:
+
     [Space, Header("Speed:")]
     [Range(0f, 5f)] public float _speed = 1f;
     [Range(0f, 5f)] public float _stairSpeed = 1.5f;
 
     [Space]
-    public Ease _playerAnimationMovement;
+    public Ease _playerAnimation;
+
+    [Space, SerializeField] private List<Transform> _path = new List<Transform>();
 
     [HideInInspector] public bool _isWalking = false;
 
-    [Space]
-    [SerializeField] private Transform _currentPosition;
-    [SerializeField] private Transform _clickedPosition;
+    private Transform _currentPosition;
+    private Transform _clickedPosition;
 
-    [Space, SerializeField] private List<Transform> _finalPath = new List<Transform>();
+    #endregion
 
     private void Start()
     {
-        StartStopCoroutine(true, "PositionCoroutine");
-        StartStopCoroutine(true, "RaycastCoroutine");
+        StartCoroutine(GetNextPositon());
+        StartCoroutine(GetCurrentPosition());
     }
 
-    IEnumerator PositionCoroutine()
+    private IEnumerator GetNextPositon()
     {
         while (true)
         {
             bool clickedButton = Input.GetMouseButtonDown(0);
-            SelectedPositionDetecter(clickedButton);
+            SetNextClickedPosition(clickedButton);
             clickedButton = false;
             yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
         }
     }
 
-    IEnumerator RaycastCoroutine()
+    private IEnumerator GetCurrentPosition()
     {
         while (true)
         {
-            RaycastDown();
+            SetRaycastDown();
             yield return new WaitUntil(() => _isWalking);
         }
     }
 
-    public void StartStopCoroutine(bool start, string coroutineName)
-    {
-        if (start) StartCoroutine(coroutineName);
-        else StopCoroutine(coroutineName);
-    }
-
-    private void RaycastDown()
+    private void SetRaycastDown()
     {
         Ray playerRay;
         RaycastHit playerHit;
@@ -62,28 +59,28 @@ public class PlayerController : MonoBehaviour
         else return;
 
         if (Physics.Raycast(playerRay, out playerHit))
-            if (playerHit.transform.GetComponent<PlayerPath>() != null) _currentPosition = playerHit.transform;
+            if (playerHit.transform.GetComponent<PathableBlock>() != null)
+                _currentPosition = playerHit.transform;
 
         transform.parent = CheckGroundMotion();
     }
 
-    private void SelectedPositionDetecter(bool clickedButton)
+    private void SetNextClickedPosition(bool clickedButton = false)
     {
-        if (_isWalking) return;
-
-        if (clickedButton)
+        if (!_isWalking && clickedButton)
         {
             Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit mouseHit;
 
             if (Physics.Raycast(mouseRay, out mouseHit))
-                if (mouseHit.transform.GetComponent<PlayerPath>() != null)
+                if (mouseHit.transform.GetComponent<PathableBlock>() != null)
                 {
                     _clickedPosition = mouseHit.transform;
-                    _finalPath.Clear();
+                    _path.Clear();
                     FindPath();
                 }
         }
+        else return;
     }
 
     private void FindPath()
@@ -91,12 +88,12 @@ public class PlayerController : MonoBehaviour
         List<Transform> nextPositions = new List<Transform>();
         List<Transform> pastPositions = new List<Transform>();
 
-        foreach (WalkPath path in _currentPosition.GetComponent<PlayerPath>()._possiblePaths)
+        foreach (WalkPath path in _currentPosition.GetComponent<PathableBlock>()._possiblePaths)
         {
             if (path._active)
             {
                 nextPositions.Add(path._target);
-                path._target.GetComponent<PlayerPath>()._previousPosition = _currentPosition;
+                path._target.GetComponent<PathableBlock>()._previousPosition = _currentPosition;
             }
         }
 
@@ -112,11 +109,12 @@ public class PlayerController : MonoBehaviour
 
         while (position != _currentPosition)
         {
-            _finalPath.Add(position);
-            if (position.GetComponent<PlayerPath>()._previousPosition != null)
-                position = position.GetComponent<PlayerPath>()._previousPosition;
+            _path.Add(position);
+            if (position.GetComponent<PathableBlock>()._previousPosition != null)
+                position = position.GetComponent<PathableBlock>()._previousPosition;
             else return;
         }
+
         FollowPath();
     }
 
@@ -126,50 +124,59 @@ public class PlayerController : MonoBehaviour
 
         _isWalking = true;
 
-        for (int i = _finalPath.Count - 1; i > 0; i--)
+        for (int a = _path.Count - 1; a > 0; a--)
         {
-            sq.Append(transform.DOMove(_finalPath[i].GetComponent<PlayerPath>().GetWalkPoint() + transform.up / 2,
-                .2f * SetPlayerSpeed(_finalPath[i].GetComponent<PlayerPath>()._isStair)).SetEase(_playerAnimationMovement));
+            sq.Append(transform.DOMove(_path[a].GetComponent<PathableBlock>().GetWalkPoint() + transform.up / 2,
+                .2f * SetSpeed(_path[a].GetComponent<PathableBlock>()._isStair)).SetEase(_playerAnimation));
         }
 
-        sq.Append(transform.DOMove(_clickedPosition.GetComponent<PlayerPath>().GetWalkPoint() + transform.up / 2,
-            .2f * SetPlayerSpeed(_clickedPosition.GetComponent<PlayerPath>()._isStair)).SetEase(_playerAnimationMovement));
+        sq.Append(transform.DOMove(_clickedPosition.GetComponent<PathableBlock>().GetWalkPoint() + transform.up / 2,
+            .2f * SetSpeed(_clickedPosition.GetComponent<PathableBlock>()._isStair)).SetEase(_playerAnimation));
 
-        sq.AppendCallback(() => Clear());
+        sq.AppendCallback(() => ClearPath());
     }
 
-    private void Clear()
+    private void ClearPath()
     {
-        foreach (Transform tr in _finalPath) tr.GetComponent<PlayerPath>()._previousPosition = null;
+        foreach (Transform t in _path) t.GetComponent<PathableBlock>()._previousPosition = null;
 
-        _finalPath.Clear();
+        _path.Clear();
         _isWalking = false;
     }
 
-    private void ExplorePositions(List<Transform> nextPositions, List<Transform> pastPositions)
+    private void ExplorePositions(List<Transform> nextPositions = null, List<Transform> pastPositions = null)
     {
-        Transform current = nextPositions.First();
-        nextPositions.Remove(current);
+        Transform currentPosition = nextPositions.First();
+        nextPositions.Remove(currentPosition);
 
-        if (current == _clickedPosition) return;
+        if (currentPosition == _clickedPosition) return;
 
-        foreach (WalkPath path in current.GetComponent<PlayerPath>()._possiblePaths)
+        foreach (WalkPath wp in currentPosition.GetComponent<PathableBlock>()._possiblePaths)
         {
-            if (!pastPositions.Contains(path._target) && path._active)
+            if (!pastPositions.Contains(wp._target) && wp._active)
             {
-                nextPositions.Add(path._target);
-                path._target.GetComponent<PlayerPath>()._previousPosition = current;
+                nextPositions.Add(wp._target);
+                wp._target.GetComponent<PathableBlock>()._previousPosition = currentPosition;
             }
         }
 
-        pastPositions.Add(current);
+        pastPositions.Add(currentPosition);
 
         if (nextPositions.Any()) ExplorePositions(nextPositions, pastPositions);
     }
-    
-    private bool CheckChild() => transform.childCount > 0;
 
-    private Transform CheckGroundMotion() => _currentPosition.GetComponent<PlayerPath>()._movableBlock ? _currentPosition.parent : null;
+    private bool CheckChild()
+    { 
+        return transform.childCount > 0; 
+    }
 
-    private float SetPlayerSpeed(bool isStair) => (!isStair) ? _speed : _stairSpeed;
+    private Transform CheckGroundMotion() 
+    { 
+        return _currentPosition.GetComponent<PathableBlock>()._movableBlock ? _currentPosition.parent : null;
+    }
+
+    private float SetSpeed(bool isStair = false)
+    {
+        return (!isStair) ? _speed : _stairSpeed;
+    }
 }
