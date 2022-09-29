@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
 
     [HideInInspector] public bool _isWalking = false;
 
-    private Transform _currentPosition;
+    [HideInInspector] public Transform _currentPosition;
     private Transform _clickedPosition;
 
     #endregion
