@@ -12,14 +12,14 @@ public class FollowPath
     public Color _linearGizmosColor = Color.black;
 
     [Space] public Vector3 _sphereGizmosPosition;
-    [Space] public List<int> _gizmosTargets;
+    //[Space] public List<int> _gizmosTargets;
     [Space] public List<Transform> _referenceBlocks;
 }
 
 public class CameraPath : MonoBehaviour
 {
     public List<FollowPath> _cameraPaths = new List<FollowPath>();
-
+    
     private void OnDrawGizmos()
     {
         if (_cameraPaths == null) return;
@@ -30,19 +30,6 @@ public class CameraPath : MonoBehaviour
 
             Gizmos.color = _cameraPaths[a]._sphereGizmosColor;
             Gizmos.DrawSphere(_cameraPaths[a]._sphereGizmosPosition, _cameraPaths[a]._sphereGizmosRadius);
-
-            try
-            {
-                for (byte b = 0; b < _cameraPaths[a]._gizmosTargets.Count; b++)
-                {
-                    Gizmos.color = _cameraPaths[a]._active ? _cameraPaths[a]._linearGizmosColor : Color.clear;
-                    Gizmos.DrawLine(_cameraPaths[a]._sphereGizmosPosition, _cameraPaths[_cameraPaths[a]._gizmosTargets[b]]._sphereGizmosPosition);
-                }
-            }
-            catch (System.ArgumentOutOfRangeException)
-            { 
-                Debug.LogError("Error: CameraPaths > CameraPath script > Targets in out of range.");
-            }
         }
     }
 }

@@ -15,12 +15,12 @@ public class PlayerController : MonoBehaviour
     [Space]
     public Ease _playerAnimation;
 
-    [Space, SerializeField] private List<Transform> _path = new List<Transform>();
+    [HideInInspector] public List<Transform> _path = new List<Transform>();
 
     [HideInInspector] public bool _isWalking = false;
 
     [HideInInspector] public Transform _currentPosition;
-    private Transform _clickedPosition;
+    [HideInInspector] public Transform _clickedPosition;
 
     #endregion
 

@@ -4,7 +4,9 @@ using DG.Tweening;
 
 public class CameraPosition : MonoBehaviour
 {
-    public float _speed = .2f;
+    public Ease _cameraAnimation = Ease.InSine;
+
+    private float _speed = .1f;
 
     private Camera _camera;
     private CameraPath _cameraPath;
@@ -21,29 +23,22 @@ public class CameraPosition : MonoBehaviour
         StartCoroutine(SetCameraPosition());
     }
 
+    private IEnumerator SetCameraPosition()
+    {
+        if (_playerController != null && _cameraPath != null)
+            while(true)
+            {
+                MoveCamera();
+                yield return new WaitUntil(() => _playerController._isWalking);
+            }
+    }
+
     private void FindObjects()
     {
         _camera ??= Camera.main;
         _cameraPath ??= FindObjectOfType<CameraPath>();
         _player ??= GameObject.Find("Player");
         _playerController ??= _player != null ? _player.GetComponent<PlayerController>() : FindObjectOfType<PlayerController>();
-    }
-
-    private IEnumerator SetCameraPosition()
-    {
-        if (_playerController != null && _cameraPath != null)
-            while(true)
-            {
-                //LookPlayer();
-                MoveCamera();
-                yield return new WaitUntil(() => _playerController._isWalking);
-            }
-    }
-
-    private void LookPlayer()
-    {
-        if (_player != null && _playerController != null)
-            _camera.transform.LookAt(_player.transform);
     }
 
     private void MoveCamera()
@@ -54,16 +49,21 @@ public class CameraPosition : MonoBehaviour
         {
             for (byte b = 0; b < _cameraPath._cameraPaths[a]._referenceBlocks.Count; b++)
             {
-                if (_playerController._currentPosition == _cameraPath._cameraPaths[a]._referenceBlocks[b])
-                    FollowPath(_cameraPath._cameraPaths[a]._sphereGizmosPosition, _speed);
+                if (_playerController._clickedPosition == _cameraPath._cameraPaths[a]._referenceBlocks[b])
+                    FollowPath(_cameraPath._cameraPaths[a]._sphereGizmosPosition);
             }
         }
     }
 
-    private void FollowPath(Vector3 destination, float speed)
+    private void FollowPath(Vector3 destination)
     {
         Sequence sq = DOTween.Sequence();
+        sq.Append(_camera.transform.DOMove(destination, SetSpeed()).SetEase(_cameraAnimation));
+        DOTween.SetTweensCapacity((int)SetSpeed(), 5000);
+    }
 
-        sq.Append(_camera.transform.DOMove(destination, .2f * speed).SetEase(Ease.Linear));
-    } // Mejorar
+    private float SetSpeed()
+    {        
+        return _playerController != null ? _speed * _playerController._path.Count : _speed;
+    }
 }
