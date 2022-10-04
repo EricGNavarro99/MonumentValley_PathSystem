@@ -76,6 +76,9 @@ public class PlayerController : MonoBehaviour
                 if (mouseHit.transform.GetComponent<PathableBlock>() != null)
                 {
                     _clickedPosition = mouseHit.transform;
+
+                    StartCoroutine(_clickedPosition.GetComponent<SelectedBlockColor>().ChangeMaterialColor());
+
                     _path.Clear();
                     FindPath();
                 }

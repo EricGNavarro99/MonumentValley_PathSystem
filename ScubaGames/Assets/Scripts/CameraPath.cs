@@ -9,10 +9,8 @@ public class FollowPath
     [Space, Header("Gizmos options:")]
     public Color _sphereGizmosColor = Color.black;
     public float _sphereGizmosRadius = .1f;
-    public Color _linearGizmosColor = Color.black;
 
     [Space] public Vector3 _sphereGizmosPosition;
-    //[Space] public List<int> _gizmosTargets;
     [Space] public List<Transform> _referenceBlocks;
 }
 

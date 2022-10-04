@@ -14,7 +14,7 @@ public class PathableBlock : MonoBehaviour
 
     [Space] public List<WalkPath> _possiblePaths = new List<WalkPath>();
 
-    [Space] public Transform _previousPosition;
+    [HideInInspector] public Transform _previousPosition;
 
     [Space]
     public bool _movableBlock = false;
